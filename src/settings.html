@@ -55,9 +55,11 @@
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         button {
             flex: 1;
+            min-width: 120px;
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
@@ -70,6 +72,10 @@
         }
         button.secondary {
             background-color: #6c757d;
+            color: white;
+        }
+        button.danger {
+            background-color: #dc3545;
             color: white;
         }
         button:hover {
@@ -115,6 +121,7 @@
         <div class="button-group">
             <button onclick="resetSettings()" class="secondary" id="resetButton">Reset Settings</button>
             <button onclick="saveSettings()" class="primary" id="saveButton">Save Settings</button>
+            <button onclick="quitApp()" class="danger" id="quitButton">Quit App</button>
         </div>
         <div id="status" class="status"></div>
     </div>
@@ -123,6 +130,13 @@
         const { ipcRenderer } = require('electron');
         const Store = require('electron-store');
         const store = new Store();
+
+        // Function to quit the app
+        function quitApp() {
+            if (confirm('Are you sure you want to quit?')) {
+                ipcRenderer.send('quit-app');
+            }
+        }
 
         // Load saved settings if they exist
         window.onload = () => {
