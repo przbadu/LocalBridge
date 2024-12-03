@@ -6,6 +6,7 @@
   "name": "localbridge",
   "version": "1.0.0",
   "description": "Seamlessly connect to your local server",
+  "homepage": "https://github.com/przbadu/localbridge",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
