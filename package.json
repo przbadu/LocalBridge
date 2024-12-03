@@ -1,0 +1,37 @@
+{
+  "name": "n8n-app",
+  "version": "1.0.0",
+  "description": "Desktop application for accessing n8n workflows",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": ["n8n", "workflow", "electron"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^25.3.1",
+    "electron-builder": "^24.6.3"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.n8n.launcher",
+    "productName": "N8N Launcher",
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"]
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>N8N Launcher Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input {
+            width: 100%;
+            padding: 8px 30px 8px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .clear-input {
+            position: absolute;
+            right: 8px;
+            top: 32px;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            font-size: 18px;
+        }
+        .clear-input:hover {
+            color: #666;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+        }
+        button.primary {
+            background-color: #007bff;
+            color: white;
+        }
+        button.secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>N8N Launcher Settings</h1>
+        <div class="form-group">
+            <label for="ipAddress">IP Address:</label>
+            <input type="text" id="ipAddress" placeholder="e.g., 192.168.1.100">
+            <button class="clear-input" onclick="clearInput('ipAddress')">&times;</button>
+        </div>
+        <div class="form-group">
+            <label for="port">Port:</label>
+            <input type="text" id="port" placeholder="e.g., 4567">
+            <button class="clear-input" onclick="clearInput('port')">&times;</button>
+        </div>
+        <div class="button-group">
+            <button onclick="resetSettings()" class="secondary" id="resetButton">Reset Settings</button>
+            <button onclick="saveSettings()" class="primary" id="saveButton">Save Settings</button>
+        </div>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const Store = require('electron-store');
+        const store = new Store();
+
+        // Load saved settings if they exist
+        window.onload = () => {
+            loadSavedSettings();
+        };
+
+        function loadSavedSettings() {
+            try {
+                const savedSettings = store.get('n8nSettings');
+                console.log('Loaded settings:', savedSettings);
+                if (savedSettings) {
+                    document.getElementById('ipAddress').value = savedSettings.ipAddress || '';
+                    document.getElementById('port').value = savedSettings.port || '';
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                showStatus('Error loading settings: ' + error.message, false);
+            }
+        }
+
+        function clearInput(inputId) {
+            document.getElementById(inputId).value = '';
+        }
+
+        function resetSettings() {
+            try {
+                store.delete('n8nSettings');
+                document.getElementById('ipAddress').value = '';
+                document.getElementById('port').value = '';
+                showStatus('Settings reset successfully', true);
+            } catch (error) {
+                console.error('Error resetting settings:', error);
+                showStatus('Error resetting settings: ' + error.message, false);
+            }
+        }
+
+        function showStatus(message, success) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + (success ? 'success' : 'error');
+            setTimeout(() => {
+                status.className = 'status';
+            }, 5000);
+        }
+
+        function validateInput(ipAddress, port) {
+            // Validate IP address format
+            const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipRegex.test(ipAddress)) {
+                showStatus('Please enter a valid IP address', false);
+                return false;
+            }
+
+            // Validate port number
+            const portNum = parseInt(port);
+            if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+                showStatus('Please enter a valid port number (1-65535)', false);
+                return false;
+            }
+
+            return true;
+        }
+
+        function saveSettings() {
+            try {
+                const saveButton = document.getElementById('saveButton');
+                const resetButton = document.getElementById('resetButton');
+                saveButton.disabled = true;
+                resetButton.disabled = true;
+
+                const ipAddress = document.getElementById('ipAddress').value.trim();
+                const port = document.getElementById('port').value.trim();
+
+                if (!ipAddress || !port) {
+                    showStatus('Please fill in both IP Address and Port', false);
+                    saveButton.disabled = false;
+                    resetButton.disabled = false;
+                    return;
+                }
+
+                if (!validateInput(ipAddress, port)) {
+                    saveButton.disabled = false;
+                    resetButton.disabled = false;
+                    return;
+                }
+
+                console.log('Saving settings:', { ipAddress, port });
+                
+                // Save to local store first
+                store.set('n8nSettings', { ipAddress, port });
+                
+                // Then send to main process
+                ipcRenderer.send('save-settings', { ipAddress, port });
+                
+                showStatus('Settings saved successfully! Connecting to N8N...', true);
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showStatus('Error saving settings: ' + error.message, false);
+                document.getElementById('saveButton').disabled = false;
+                document.getElementById('resetButton').disabled = false;
+            }
+        }
+
+        // Listen for errors from main process
+        ipcRenderer.on('save-settings-error', (event, errorMessage) => {
+            console.error('Error from main process:', errorMessage);
+            showStatus('Error connecting to N8N: ' + errorMessage, false);
+            document.getElementById('saveButton').disabled = false;
+            document.getElementById('resetButton').disabled = false;
+        });
+    </script>
+</body>
+</html>
