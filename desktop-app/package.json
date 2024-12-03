@@ -1,7 +1,11 @@
 {
-  "name": "n8n-app",
+  "author": {
+    "name": "przbadu",
+    "email": "przbadu.social@gmail.com"
+  },
+  "name": "localbridge",
   "version": "1.0.0",
-  "description": "Desktop application for accessing n8n workflows",
+  "description": "Seamlessly connect to your local server",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -12,7 +16,6 @@
     "build:linux": "electron-builder --linux"
   },
   "keywords": ["n8n", "workflow", "electron"],
-  "author": "",
   "license": "MIT",
   "devDependencies": {
     "electron": "^25.3.1",
@@ -22,8 +25,8 @@
     "electron-store": "^8.1.0"
   },
   "build": {
-    "appId": "com.n8n.launcher",
-    "productName": "N8N Launcher",
+    "appId": "dev.przbadu.localbridge",
+    "productName": "LocalBridge",
     "mac": {
       "category": "public.app-category.developer-tools"
     },
